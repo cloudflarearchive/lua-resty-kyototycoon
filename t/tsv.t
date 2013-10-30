@@ -49,3 +49,59 @@ __DATA__
 [error]
 --- response_body
 [["Bach","Mozart","Beethoven"],["Paganini","Heifetz"]]
+
+
+
+=== TEST 2: sanity 2
+--- http_config eval: $::HttpConfig
+--- config
+    lua_need_request_body on;
+    client_body_buffer_size 50k;
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local tsv = require "resty.kt.tsv"
+
+            ngx.log(ngx.NOTICE, ngx.var.request_body)
+            local res, err = tsv.parse(ngx.var.request_body)
+            if not res then
+                ngx.log(ngx.ERR, "failed to parse tsv: ", err)
+            end
+
+            ngx.say(cjson.encode(res))
+        ';
+    }
+--- request eval
+[["POST /t\r\n", "Beethoven\n\tPaganini\nHeifetz"]]
+--- no_error_log
+[error]
+--- response_body
+[["Beethoven"],["","Paganini"],["Heifetz"]]
+
+
+
+=== TEST 3: sanity 3
+--- http_config eval: $::HttpConfig
+--- config
+    lua_need_request_body on;
+    client_body_buffer_size 50k;
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local tsv = require "resty.kt.tsv"
+
+            local res, err = tsv.parse(ngx.var.request_body)
+            if not res then
+                ngx.log(ngx.ERR, "failed to parse tsv: ", err)
+            end
+
+            ngx.say(cjson.encode(res))
+        ';
+    }
+--- request eval
+"POST /t\r\n\nBeethoven\tPaganini\nHeifetz"
+--- no_error_log
+[error]
+--- response_body
+[["Beethoven","Paganini"],["Heifetz"]]
+

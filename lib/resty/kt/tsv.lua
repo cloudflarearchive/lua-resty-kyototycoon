@@ -33,6 +33,7 @@ function _M.parse(tsv_text)
     while j <= len do
         local ch = string_byte(tsv_text, j)
         if ch == HTAB then
+            ngx.log(ngx.NOTICE, string_sub(tsv_text, i, j))
             line[col_idx] = string_sub(tsv_text, i, j - 1)
             i = j + 1
             col_idx = col_idx + 1
