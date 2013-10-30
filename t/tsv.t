@@ -44,7 +44,7 @@ __DATA__
         ';
     }
 --- request eval
-"POST /t\r\nBach\tMozart\tBeethoven\r\nPagnini\tHeifetz"
+"POST /t\r\nBach\tMozart\tBeethoven\r\nPaganini\tHeifetz"
 --- no_error_log
 [error]
 --- response
