@@ -5,7 +5,7 @@ use Cwd qw(cwd);
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2 + 1);
+plan tests => repeat_each() * (blocks() * 3);
 
 my $pwd = cwd();
 
@@ -25,7 +25,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: sanity
+=== TEST 1: parsing
 --- http_config eval: $::HttpConfig
 --- config
     lua_need_request_body on;
@@ -35,7 +35,7 @@ __DATA__
             local cjson = require "cjson"
             local tsv = require "resty.kt.tsv"
 
-            local res, err = tsv.parse(ngx.var.request_body)
+            local res, err = tsv.decode(ngx.var.request_body)
             if not res then
                 ngx.log(ngx.ERR, "failed to parse tsv: ", err)
             end
@@ -52,7 +52,7 @@ __DATA__
 
 
 
-=== TEST 2: sanity 2
+=== TEST 2: parsing 2
 --- http_config eval: $::HttpConfig
 --- config
     lua_need_request_body on;
@@ -63,7 +63,7 @@ __DATA__
             local tsv = require "resty.kt.tsv"
 
             ngx.log(ngx.NOTICE, ngx.var.request_body)
-            local res, err = tsv.parse(ngx.var.request_body)
+            local res, err = tsv.decode(ngx.var.request_body)
             if not res then
                 ngx.log(ngx.ERR, "failed to parse tsv: ", err)
             end
@@ -80,7 +80,7 @@ __DATA__
 
 
 
-=== TEST 3: sanity 3
+=== TEST 3: parsing 3
 --- http_config eval: $::HttpConfig
 --- config
     lua_need_request_body on;
@@ -90,7 +90,7 @@ __DATA__
             local cjson = require "cjson"
             local tsv = require "resty.kt.tsv"
 
-            local res, err = tsv.parse(ngx.var.request_body)
+            local res, err = tsv.decode(ngx.var.request_body)
             if not res then
                 ngx.log(ngx.ERR, "failed to parse tsv: ", err)
             end
@@ -105,3 +105,33 @@ __DATA__
 --- response_body
 [["Beethoven","Paganini"],["Heifetz"]]
 
+
+
+=== TEST 4: encoding
+--- http_config eval: $::HttpConfig
+--- config
+    lua_need_request_body on;
+    client_body_buffer_size 50k;
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local tsv = require "resty.kt.tsv"
+
+            local content = {
+                {"Bach", "Tchaikovsky"},
+                {"Mozart"},
+            }
+            local res, err = tsv.encode(content)
+            if not res then
+                ngx.log(ngx.ERR, "failed to decode tsv: ", err)
+            end
+
+            ngx.say(res)
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body eval
+"Bach\tTchaikovsky\nMozart\n"

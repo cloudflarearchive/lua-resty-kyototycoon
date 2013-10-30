@@ -2,6 +2,7 @@
 
 local string_byte = string.byte
 local string_sub  = string.sub
+local concat      = table.concat
 
 local CR          = string_byte("\r")
 local LF          = string_byte("\n")
@@ -16,7 +17,7 @@ end
 local _M = new_tab(0, 10)
 
 
-function _M.parse(tsv_text)
+function _M.decode(tsv_text)
     if (type(tsv_text) ~= "string") then
         return nil, "expect string but got " .. type(tsv_text)
     end
@@ -65,7 +66,20 @@ function _M.parse(tsv_text)
     return res
 end
 
-function _M.generate(source)
+function _M.encode(source)
+    if type(source) ~= "table" then
+        return nil, "expecting table but got " .. type(source)
+    end
+
+    local rows_idx = 1
+    local rows = {}
+
+    for i, row in ipairs(source) do
+        rows[rows_idx] = concat(row, "\t")
+        rows_idx = rows_idx + 1
+    end
+
+    return concat(rows, "\n")
 end
 
 return _M
