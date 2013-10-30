@@ -35,9 +35,9 @@ __DATA__
             local cjson = require "cjson"
             local tsv = require "resty.kt.tsv"
 
-            local res, err tsv.parse(ngx.var.request_body)
+            local res, err = tsv.parse(ngx.var.request_body)
             if not res then
-                ngx.log(ngx.ERR, "failed to parse tsv")
+                ngx.log(ngx.ERR, "failed to parse tsv: ", err)
             end
 
             ngx.say(cjson.encode(res))
@@ -47,5 +47,5 @@ __DATA__
 "POST /t\r\nBach\tMozart\tBeethoven\r\nPaganini\tHeifetz"
 --- no_error_log
 [error]
---- response
-
+--- response_body
+[["Bach","Mozart","Beethoven"],["Paganini","Heifetz"]]
