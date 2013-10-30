@@ -135,3 +135,33 @@ GET /t
 [error]
 --- response_body eval
 "Bach\tTchaikovsky\nMozart\n"
+
+
+
+=== TEST 5: encoding
+--- http_config eval: $::HttpConfig
+--- config
+    lua_need_request_body on;
+    client_body_buffer_size 50k;
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local tsv = require "resty.kt.tsv"
+
+            local content = {
+            }
+            local res, err = tsv.encode(content)
+            if not res then
+                ngx.log(ngx.ERR, "failed to decode tsv: ", err)
+            end
+
+            ngx.say(res)
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body eval
+"\n"
+--- ONLY
