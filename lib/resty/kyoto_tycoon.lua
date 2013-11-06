@@ -1,4 +1,5 @@
 -- Copyright (C) 2013  Jiale Zhi (calio), Cloudflare Inc.
+
 local cjson         = require "cjson"
 local httpmod       = require "resty.kt.http"
 local tsv           = require "resty.kt.tsv"
@@ -36,9 +37,12 @@ local commands = {
 }
 
 local command_args = {
-    void = {},
-    get = { "key" },
-    set = { "key", "value" },
+    void        = {},
+    get         = { "key" },
+    set         = { "key", "value" },
+    clear       = {},
+    report      = {},
+    --echo = {},                -- check the protocol detail later
 }
 
 
@@ -74,7 +78,17 @@ local function _do_req(http, cmd, args)
     -- get uri and header
     local uri = "/rpc/" .. cmd
     -- get body
-    local body, err = tsv.encode(args)
+    local body, err
+    if type(args) == "table" then
+        body, err = tsv.encode(args)
+    elseif type(args) == "string" then
+        body = args
+    elseif type(args) == "nil" then
+        body = ""
+    else
+        return nil, "bad argument, expecting table or string but got "
+                .. type(args)
+    end
     if not body then
         return nil, err
     end
@@ -93,16 +107,13 @@ local function _do_command(self, cmd, args)
         return ""
     end
 
-    local t = tsv.decode(res.body)
-    if cmd == "get" then
-        for i=1, #t do
-            if t[i][1] == "value" then
-                return t[i][2]
-            end
-        end
+    if (res.header.content_type ~= "text/tab-separated-values") then
+        return res.body
     end
 
-    return nil
+    local t = tsv.decode_kv(res.body)
+print("tsv result:" .. cjson.encode(t))
+    return t
 end
 
 function _M.new(self)

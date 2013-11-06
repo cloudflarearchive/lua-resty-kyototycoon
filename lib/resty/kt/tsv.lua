@@ -18,6 +18,19 @@ local _M = new_tab(0, 10)
 _M._VERSION = '0.01'
 
 
+function _M.decode_kv(tsv_text)
+    local r, err = _M.decode(tsv_text)
+    if not r then
+        return nil, err
+    end
+    local res = {}
+    for i, v in ipairs(r) do
+        res[v[1]] = v[2]
+    end
+
+    return res
+end
+
 function _M.decode(tsv_text)
     if (type(tsv_text) ~= "string") then
         return nil, "expect string but got " .. type(tsv_text)

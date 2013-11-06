@@ -78,7 +78,7 @@ function _M.read_reply(self)
     end
     header_table.content_length = tonumber(content_length)
 
-    local content_type = string.match(header, "Content%-Type: ([%w_-]+)")
+    local content_type = string.match(header, "Content%-Type: ([%w_/-]+)")
     if content_type then
         header_table.content_type = content_type
     end
@@ -88,6 +88,9 @@ function _M.read_reply(self)
     if not body then
         return nil, "receive http body failed: " .. err
     end
+
+    print("http response:\n" .. header .. "\r\n\r\n" .. body)
+    print("header table: " .. cjson.encode(header_table))
     return { header = header_table, raw_header = header, body = body }
 end
 
@@ -126,6 +129,7 @@ function _M.post(self, ...)
             .. "Connection: Keep-Alive\r\n\r\n"
             .. "%s", uri, self.host, self.port, #body, body)
 
+    print("http request:\n" .. req)
     local bytes, err = sock:send(req)
     if not bytes then
         return nil, "sock:send failed: " .. err

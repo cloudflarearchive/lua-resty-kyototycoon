@@ -5,7 +5,7 @@ use Cwd qw(cwd);
 
 repeat_each(1);
 
-plan tests => repeat_each() * (blocks() * 2 + 1);
+plan tests => repeat_each() * (blocks() * 3);
 
 my $pwd = cwd();
 
@@ -42,6 +42,12 @@ __DATA__
                 return
             end
 
+            local res, err = kt:clear()
+            if err then
+                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                return
+            end
+
             local res, err = kt:void()
             if err then
                 ngx.log(ngx.ERR, "failed to call kt:void(): ", err)
@@ -70,7 +76,7 @@ __DATA__
                 return
             end
 
-            ngx.say("kyoto: ", res)
+            ngx.say("kyoto: ", res.value)
 
             kt:close()
         ';
@@ -82,4 +88,44 @@ GET /t
 --- response_body
 set kyoto ok
 kyoto: tycoon
+
+
+
+=== TEST 2: sanity 2
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyoto_tycoon = require "resty.kyoto_tycoon"
+            local kt = kyoto_tycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.log(ngx.ERR, "failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                return
+            end
+
+            local res, err = kt:report()
+            if err then
+                ngx.log(ngx.ERR, "failed to call kt:report(): ", err)
+                return
+            end
+
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
 
