@@ -3,7 +3,7 @@
 use Test::Nginx::Socket;
 use Cwd qw(cwd);
 
-repeat_each(2);
+repeat_each(1);
 
 plan tests => repeat_each() * (blocks() * 2 + 1);
 
@@ -19,7 +19,7 @@ $ENV{TEST_NGINX_KT_PORT} ||= 1978;
 
 #no_long_string();
 
-log_level('info');
+log_level('notice');
 
 run_tests();
 
@@ -30,6 +30,7 @@ __DATA__
 --- config
     location /t {
         content_by_lua '
+            local cjson = require "cjson"
             local kyoto_tycoon = require "resty.kyoto_tycoon"
             local kt = kyoto_tycoon:new()
 
@@ -43,21 +44,24 @@ __DATA__
 
             local res, err = kt:void()
             if err then
-                ngx.log("failed to call kt:void(): ", err)
+                ngx.log(ngx.ERR, "failed to call kt:void(): ", err)
                 return
             end
 
-            res, err = kt:set("kyoto", "tycoon")
+            res, err = kt:set({
+                key = "kyoto",
+                value = "tycoon",
+            })
             if not res then
-                ngx.log("failed to set: ", err)
+                ngx.log(ngx.ERR, "failed to set: ", err)
                 return
             end
 
-            ngx.say("set kyoto: ", res)
+            ngx.say("set kyoto ok")
 
-            res, err = kt:get("kyoto")
+            res, err = kt:get({ key = "kyoto" })
             if err then
-                ngx.say("failed to get kyoto: ", err)
+                ngx.log(ngx.ERR, "failed to get kyoto: ", err)
                 return
             end
 
@@ -75,7 +79,7 @@ __DATA__
 GET /t
 --- no_error_log
 [error]
---- response
-set kyoto: tycoon
+--- response_body
+set kyoto ok
 kyoto: tycoon
 

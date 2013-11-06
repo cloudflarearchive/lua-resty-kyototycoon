@@ -3,7 +3,7 @@
 use Test::Nginx::Socket;
 use Cwd qw(cwd);
 
-repeat_each(2);
+repeat_each(1);
 
 plan tests => repeat_each() * (blocks() * 3);
 
@@ -107,7 +107,33 @@ __DATA__
 
 
 
-=== TEST 4: encoding
+=== TEST 4: parsing 4
+--- http_config eval: $::HttpConfig
+--- config
+    lua_need_request_body on;
+    client_body_buffer_size 50k;
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local tsv = require "resty.kt.tsv"
+            local res, err = tsv.decode("value\\ttycoon")
+            if not res then
+                ngx.log(ngx.ERR, "failed to parse tsv: ", err)
+            end
+
+            ngx.say(cjson.encode(res))
+        ';
+    }
+--- request
+POST /t
+--- no_error_log
+[error]
+--- response_body
+[["value","tycoon"]]
+
+
+
+=== TEST 5: encoding table
 --- http_config eval: $::HttpConfig
 --- config
     lua_need_request_body on;
@@ -138,7 +164,39 @@ GET /t
 
 
 
-=== TEST 5: encoding
+=== TEST 6: encoding hash
+--- http_config eval: $::HttpConfig
+--- config
+    lua_need_request_body on;
+    client_body_buffer_size 50k;
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local tsv = require "resty.kt.tsv"
+
+            local content = {
+                a="Bach",
+                b="Tchaikovsky",
+                c="Mozart",
+            }
+            local res, err = tsv.encode(content)
+            if not res then
+                ngx.log(ngx.ERR, "failed to decode tsv: ", err)
+            end
+
+            ngx.say(res)
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body eval
+"b\tTchaikovsky\na\tBach\nc\tMozart\n"
+
+
+
+=== TEST 7: encoding
 --- http_config eval: $::HttpConfig
 --- config
     lua_need_request_body on;

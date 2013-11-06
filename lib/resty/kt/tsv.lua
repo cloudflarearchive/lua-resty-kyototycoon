@@ -15,6 +15,7 @@ if not ok then
 end
 
 local _M = new_tab(0, 10)
+_M._VERSION = '0.01'
 
 
 function _M.decode(tsv_text)
@@ -34,7 +35,6 @@ function _M.decode(tsv_text)
     while j <= len do
         local ch = string_byte(tsv_text, j)
         if ch == HTAB then
-            ngx.log(ngx.NOTICE, string_sub(tsv_text, i, j))
             line[col_idx] = string_sub(tsv_text, i, j - 1)
             i = j + 1
             col_idx = col_idx + 1
@@ -60,6 +60,7 @@ function _M.decode(tsv_text)
 
     if i < len then
         line[col_idx] = string_sub(tsv_text, i)
+        ngx.log(ngx.NOTICE, row_idx, " ", col_idx, " ", line[col_idx])
 
         res[row_idx] = line
     end
@@ -67,16 +68,34 @@ function _M.decode(tsv_text)
 end
 
 function _M.encode(source)
+    if type(source) == "nil" then
+        return ""
+    end
+
     if type(source) ~= "table" then
-        return nil, "expecting table but got " .. type(source)
+        return nil, "tsv.encode expecting table but got "
+                .. type(source)
     end
 
     local rows_idx = 1
     local rows = {}
 
-    for i, row in ipairs(source) do
-        rows[rows_idx] = concat(row, "\t")
-        rows_idx = rows_idx + 1
+    if #source > 0 then
+        for i, row in ipairs(source) do
+            rows[rows_idx] = concat(row, "\t")
+            rows_idx = rows_idx + 1
+        end
+    else
+        for k, v in pairs(source) do
+            local val
+            if type(v) == "table" then
+                val = _M.encode(v)
+            else
+                val = v
+            end
+            rows[rows_idx] = k .. "\t" .. val
+            rows_idx = rows_idx + 1
+        end
     end
 
     return concat(rows, "\n")
