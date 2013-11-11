@@ -1,6 +1,11 @@
 -- Copyright (C) 2013  Jiale Zhi (calio), Cloudflare Inc.
 
-local tcp = ngx.socket.tcp
+local tcp       = ngx.socket.tcp
+local type      = type
+local match     = string.match
+local format    = string.format
+local tostring  = tostring
+local tonumber  = tonumber
 
 
 local ok, new_tab = pcall(require, "table.new")
@@ -71,14 +76,14 @@ function _M.read_reply(self)
     end
 
     local header_table = {}
-    local content_length = string.match(header, "Content%-Length: (%d+)")
+    local content_length = match(header, "Content%-Length: (%d+)")
     if not content_length then
         return nil, "illegal response, no \"Content-Length\" header: " ..
                 tostring(header)
     end
     header_table.content_length = tonumber(content_length)
 
-    local content_type = string.match(header, "Content%-Type: ([%w_/-]+)")
+    local content_type = match(header, "Content%-Type: ([%w_/-]+)")
     if content_type then
         header_table.content_type = content_type
     end
@@ -90,16 +95,9 @@ function _M.read_reply(self)
     end
 
     print("http response:\n" .. header .. "\r\n\r\n" .. body)
-    print("header table: " .. cjson.encode(header_table))
     return { header = header_table, raw_header = header, body = body }
 end
 
---
---POST /rpc/get HTTP/1.1
---Host: :8889
---Content-Length: 10
---Content-Type: text/tab-separated-values
---
 function _M.post(self, ...)
     local args = {...}
     local uri = args[1]
@@ -122,7 +120,7 @@ function _M.post(self, ...)
                 .. type(body)
     end
 
-    local req = string.format("POST %s HTTP/1.0\r\n"
+    local req = format("POST %s HTTP/1.0\r\n"
             .. "Host: %s:%d\r\n"
             .. "Content-Length: %d\r\n"
             .. "Content-Type: text/tab-separated-values\r\n"

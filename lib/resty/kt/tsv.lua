@@ -1,8 +1,12 @@
 -- Copyright (C) 2013  Jiale Zhi (calio), Cloudflare Inc.
 
-local string_byte = string.byte
-local string_sub  = string.sub
-local concat      = table.concat
+local string_byte   = string.byte
+local string_sub    = string.sub
+local concat        = table.concat
+local ipairs        = ipairs
+local pairs         = pairs
+local type          = type
+
 
 local CR          = string_byte("\r")
 local LF          = string_byte("\n")

@@ -1,10 +1,10 @@
 -- Copyright (C) 2013  Jiale Zhi (calio), Cloudflare Inc.
 
-local cjson         = require "cjson"
 local httpmod       = require "resty.kt.http"
 local tsv           = require "resty.kt.tsv"
 
 local pairs         = pairs
+local concat        = table.concat
 local debug         = ngx.config.debug
 local log           = ngx.log
 
@@ -37,12 +37,43 @@ local commands = {
 }
 
 local command_args = {
-    void        = {},
-    get         = { "key" },
-    set         = { "key", "value" },
-    clear       = {},
-    report      = {},
-    --echo = {},                -- check the protocol detail later
+    void                = {},
+    --echo              = {},            -- check the protocol detail later
+    report              = {},
+    play_script         = { "name" },
+    tune_replication    = {},
+    status              = {},
+    clear               = {},
+    synchronize         = {},
+    set                 = { "key", "value" },
+    add                 = { "key", "value" },
+    replace             = { "key", "value" },
+    append              = { "key", "value" },
+    increment           = { "key", "num" },
+    increment_double    = { "key", "num" },
+    cas                 = { "key" },
+    remove              = { "key" },
+    get                 = { "key" },
+    check               = { "key" },
+    seize               = { "key" },
+    set_bulk            = {},
+    remove_bulk         = {},
+    get_bulk            = {},
+    vacuum              = {},
+    match_prefix        = { "prefix" },
+    match_regex         = { "regex" },
+    match_similar       = { "origin" },
+    cur_jump            = { "CUR" },
+    cur_jump_back       = { "CUR" },
+    cur_step            = { "CUR" },
+    cur_step_back       = { "CUR" },
+    cur_set_value       = { "CUR", "value" },
+    cur_remove          = { "CUR" },
+    cur_get_key         = { "CUR" },
+    cur_get_value       = { "CUR" },
+    cur_get             = { "CUR" },
+    cur_seize           = { "CUR" },
+    cur_delete          = { "CUR" },
 }
 
 
@@ -56,11 +87,12 @@ local function _check_args(cmd, args)
     local idx = 1
     for i, v in pairs(checklist) do
         if not args[v] then
-            table.insert(missing, v)
+            missing[idx] = v
+            idx = idx + 1
         end
     end
 
-    if #missing > 0 then
+    if idx > 1 then
         return nil, "argument " .. table.concat(missing, ",")
                 .. " is missing for cmd: " .. cmd
     end
@@ -81,6 +113,9 @@ local function _do_req(http, cmd, args)
     local body, err
     if type(args) == "table" then
         body, err = tsv.encode(args)
+        if not body then
+            return nil, err
+        end
     elseif type(args) == "string" then
         body = args
     elseif type(args) == "nil" then
@@ -88,9 +123,6 @@ local function _do_req(http, cmd, args)
     else
         return nil, "bad argument, expecting table or string but got "
                 .. type(args)
-    end
-    if not body then
-        return nil, err
     end
 
     return http:post(uri, body)
@@ -111,9 +143,7 @@ local function _do_command(self, cmd, args)
         return res.body
     end
 
-    local t = tsv.decode_kv(res.body)
-print("tsv result:" .. cjson.encode(t))
-    return t
+    return tsv.decode_kv(res.body)
 end
 
 function _M.new(self)
