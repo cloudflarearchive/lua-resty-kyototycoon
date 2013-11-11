@@ -49,8 +49,8 @@ local command_args = {
     set                 = { "key", "value" },
     add                 = { "key", "value" },
     replace             = { "key", "value" },
------------------------ NOT TESTED --------------------------
     append              = { "key", "value" },
+----------------------- NOT TESTED --------------------------
     increment           = { "key", "num" },
     increment_double    = { "key", "num" },
     cas                 = { "key" },
