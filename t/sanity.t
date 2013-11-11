@@ -326,3 +326,70 @@ failed to set: 450: DB: 6: record duplication: record duplication
 
 
 
+=== TEST 5: replace
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyoto_tycoon = require "resty.kyoto_tycoon"
+            local kt = kyoto_tycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.say("failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.say("failed to call kt:clear(): ", err)
+                return
+            end
+
+            ok, err = kt:replace({
+                key = "count",
+                value = 1,
+            })
+            if err then
+                ngx.say("failed to replace ", err)
+            else
+                ngx.say("replace count ok")
+            end
+
+            res, err = kt:set({ key = "count", value = 2 })
+            if err then
+                ngx.say("failed to set count ", err)
+                return
+            end
+
+            ok, err = kt:replace({
+                key = "count",
+                value = 1,
+            })
+            if err then
+                ngx.say("failed to replace ", err)
+            else
+                ngx.say("replace count ok")
+            end
+
+            res, err = kt:get({ key = "count" })
+            if err then
+                ngx.say("failed to get count ", err)
+            else
+                ngx.say("get count: ", res.value)
+            end
+
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
+failed to replace 450: DB: 7: no record: no record
+replace count ok
+get count: 1

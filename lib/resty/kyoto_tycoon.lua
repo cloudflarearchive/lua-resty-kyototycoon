@@ -48,8 +48,8 @@ local command_args = {
     --synchronize         = {},
     set                 = { "key", "value" },
     add                 = { "key", "value" },
------------------------ NOT TESTED --------------------------
     replace             = { "key", "value" },
+----------------------- NOT TESTED --------------------------
     append              = { "key", "value" },
     increment           = { "key", "num" },
     increment_double    = { "key", "num" },
