@@ -17,7 +17,7 @@ our $HttpConfig = qq{
 $ENV{TEST_NGINX_RESOLVER} = '8.8.8.8';
 $ENV{TEST_NGINX_KT_PORT} ||= 1978;
 
-#no_long_string();
+no_long_string();
 
 log_level('notice');
 
@@ -38,19 +38,19 @@ __DATA__
 
             local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
             if not ok then
-                ngx.log(ngx.ERR, "failed to connect to kt: ", err)
+                ngx.say("failed to connect to kt: ", err)
                 return
             end
 
             local res, err = kt:clear()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                ngx.say("failed to call kt:clear(): ", err)
                 return
             end
 
             local res, err = kt:void()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:void(): ", err)
+                ngx.say("failed to call kt:void(): ", err)
                 return
             end
 
@@ -59,7 +59,7 @@ __DATA__
                 value = "tycoon",
             })
             if not ok then
-                ngx.log(ngx.ERR, "failed to set: ", err)
+                ngx.say("failed to set: ", err)
                 return
             end
 
@@ -67,7 +67,7 @@ __DATA__
 
             res, err = kt:get({ key = "kyoto" })
             if err then
-                ngx.log(ngx.ERR, "failed to get kyoto: ", err)
+                ngx.say("failed to get kyoto: ", err)
                 return
             end
 
@@ -104,26 +104,26 @@ kyoto: tycoon
 
             local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
             if not ok then
-                ngx.log(ngx.ERR, "failed to connect to kt: ", err)
+                ngx.say("failed to connect to kt: ", err)
                 return
             end
 
             local res, err = kt:clear()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                ngx.say("failed to call kt:clear(): ", err)
                 return
             end
 
             local res, err = kt:report()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:report(): ", err)
+                ngx.say("failed to call kt:report(): ", err)
                 return
             end
             print(cjson.encode(res))
 
             local res, err = kt:status()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:report(): ", err)
+                ngx.say("failed to call kt:report(): ", err)
                 return
             end
             print(cjson.encode(res))
@@ -155,7 +155,7 @@ conf_kc_version
 
             local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
             if not ok then
-                ngx.log(ngx.ERR, "failed to connect to kt: ", err)
+                ngx.say("failed to connect to kt: ", err)
                 return
             end
 
@@ -164,7 +164,7 @@ conf_kc_version
                 value = "tycoon",
             })
             if not ok then
-                ngx.log(ngx.ERR, "failed to set: ", err)
+                ngx.say("failed to set: ", err)
                 return
             end
 
@@ -172,21 +172,14 @@ conf_kc_version
 
             local res, err = kt:clear()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                ngx.say("failed to call kt:clear(): ", err)
                 return
             end
 
             res, err = kt:get({ key = "kyoto" })
             if err then
-                ngx.log(ngx.ERR, "failed to get kyoto: ", err)
+                ngx.say("failed to get kyoto: ", err)
                 return
-            end
-
-            if not res.value then
-                ngx.say("kyoto not found.")
-                return
-            else
-                ngx.say("kyoto: ", res.value)
             end
 
             kt:close()
@@ -198,7 +191,7 @@ GET /t
 [error]
 --- response_body
 set kyoto ok
-kyoto not found.
+failed to get kyoto: 450: DB: 7: no record: no record
 
 
 
@@ -215,13 +208,13 @@ kyoto not found.
 
             local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
             if not ok then
-                ngx.log(ngx.ERR, "failed to connect to kt: ", err)
+                ngx.say("failed to connect to kt: ", err)
                 return
             end
 
             local res, err = kt:clear()
             if err then
-                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                ngx.say("failed to call kt:clear(): ", err)
                 return
             end
 
@@ -230,7 +223,7 @@ kyoto not found.
                 value = 1,
             })
             if not ok then
-                ngx.log(ngx.ERR, "failed to set: ", err)
+                ngx.say("failed to set: ", err)
                 return
             end
 
@@ -238,7 +231,7 @@ kyoto not found.
 
             res, err = kt:get({ key = "count" })
             if err then
-                ngx.log(ngx.ERR, "failed to get count ", err)
+                ngx.say("failed to get count ", err)
                 return
             end
 
@@ -259,6 +252,77 @@ GET /t
 --- response_body
 set count ok
 count: 1
+
+
+
+=== TEST 5: add
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyoto_tycoon = require "resty.kyoto_tycoon"
+            local kt = kyoto_tycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.say("failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.say("failed to call kt:clear(): ", err)
+                return
+            end
+
+            ok, err = kt:add({
+                key = "count",
+                value = 1,
+            })
+            if err then
+                ngx.say("failed to set: ", err)
+                return
+            end
+
+            ngx.say("add count ok")
+
+            res, err = kt:get({ key = "count" })
+            if err then
+                ngx.say("failed to get count ", err)
+                return
+            end
+
+            if not res.value then
+                ngx.say("count not found.")
+                return
+            else
+                ngx.say("count: ", res.value)
+            end
+
+            ok, err = kt:add({
+                key = "count",
+                value = 1,
+            })
+            if err then
+                ngx.say("failed to set: ", err)
+                return
+            end
+
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
+add count ok
+count: 1
+failed to set: 450: DB: 6: record duplication: record duplication
+
 
 
 

@@ -76,6 +76,13 @@ function _M.read_reply(self)
     end
 
     local header_table = {}
+
+    local status = match(header, "HTTP/1%.%d (%d+)")
+    if not status then
+        return nil, "illegal response, no \"HTTP status\": " .. tostring(header)
+    end
+    header_table.status = tonumber(status)
+
     local content_length = match(header, "Content%-Length: (%d+)")
     if not content_length then
         return nil, "illegal response, no \"Content-Length\" header: " ..

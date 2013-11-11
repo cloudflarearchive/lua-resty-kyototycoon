@@ -14,6 +14,7 @@ Description
 TODO
 ====
 
+* Documents for response format, error message
 * Test new commands support
 * Encoding(colenc) support
 

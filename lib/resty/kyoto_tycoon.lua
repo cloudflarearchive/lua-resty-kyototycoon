@@ -7,6 +7,7 @@ local pairs         = pairs
 local concat        = table.concat
 local debug         = ngx.config.debug
 local log           = ngx.log
+local format        = string.format
 
 local DEBUG         = ngx.DEBUG
 local ERR           = ngx.ERR
@@ -144,7 +145,12 @@ local function _do_command(self, cmd, args)
         return res.body
     end
 
-    return tsv.decode_kv(res.body)
+    local body = tsv.decode_kv(res.body)
+    if (res.header.status ~= 200) then
+        return nil, format("%d: %s", res.header.status, body.ERROR)
+    end
+
+    return body
 end
 
 function _M.new(self)
