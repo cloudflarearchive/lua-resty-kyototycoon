@@ -54,11 +54,11 @@ __DATA__
                 return
             end
 
-            res, err = kt:set({
+            ok, err = kt:set({
                 key = "kyoto",
                 value = "tycoon",
             })
-            if not res then
+            if not ok then
                 ngx.log(ngx.ERR, "failed to set: ", err)
                 return
             end
@@ -159,11 +159,11 @@ conf_kc_version
                 return
             end
 
-            res, err = kt:set({
+            ok, err = kt:set({
                 key = "kyoto",
                 value = "tycoon",
             })
-            if not res then
+            if not ok then
                 ngx.log(ngx.ERR, "failed to set: ", err)
                 return
             end
@@ -199,3 +199,66 @@ GET /t
 --- response_body
 set kyoto ok
 kyoto not found.
+
+
+
+=== TEST 4: set number
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyoto_tycoon = require "resty.kyoto_tycoon"
+            local kt = kyoto_tycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.log(ngx.ERR, "failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.log(ngx.ERR, "failed to call kt:clear(): ", err)
+                return
+            end
+
+            ok, err = kt:set({
+                key = "count",
+                value = 1,
+            })
+            if not ok then
+                ngx.log(ngx.ERR, "failed to set: ", err)
+                return
+            end
+
+            ngx.say("set count ok")
+
+            res, err = kt:get({ key = "count" })
+            if err then
+                ngx.log(ngx.ERR, "failed to get count ", err)
+                return
+            end
+
+            if not res.value then
+                ngx.say("count not found.")
+                return
+            else
+                ngx.say("count: ", res.value)
+            end
+
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
+set count ok
+count: 1
+
+
+

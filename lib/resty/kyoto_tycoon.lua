@@ -44,9 +44,10 @@ local command_args = {
     --tune_replication    = {},
     status              = {},
     clear               = {},
-    synchronize         = {},
+    --synchronize         = {},
     set                 = { "key", "value" },
     add                 = { "key", "value" },
+----------------------- NOT TESTED --------------------------
     replace             = { "key", "value" },
     append              = { "key", "value" },
     increment           = { "key", "num" },
