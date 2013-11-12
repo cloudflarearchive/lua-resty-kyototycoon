@@ -10,6 +10,7 @@ This library is still experimental and under early development.
 
 Description
 ===========
+* A note on KT's numeric operation: http://fallabs.com/blog/promenade.cgi?id=27
 
 TODO
 ====

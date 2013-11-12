@@ -50,12 +50,12 @@ local command_args = {
     add                 = { "key", "value" },
     replace             = { "key", "value" },
     append              = { "key", "value" },
+    get                 = { "key" },
 ----------------------- NOT TESTED --------------------------
-    increment           = { "key", "num" },
+    increment           = { "key", "num" }, -- failed
     increment_double    = { "key", "num" },
     cas                 = { "key" },
     remove              = { "key" },
-    get                 = { "key" },
     check               = { "key" },
     seize               = { "key" },
     set_bulk            = {},

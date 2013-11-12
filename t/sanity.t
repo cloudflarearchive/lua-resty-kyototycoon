@@ -395,7 +395,7 @@ get count: 1
 
 
 
-=== TEST 7: sanity
+=== TEST 7: append
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
@@ -480,3 +480,65 @@ append kyoto ok
 kyoto: tycoon+tycoon
 
 
+
+=== TEST 8: increment # need to know more about KT's implementation
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyoto_tycoon = require "resty.kyoto_tycoon"
+            local kt = kyoto_tycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.say("failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.say("failed to call kt:clear(): ", err)
+                return
+            end
+
+            local ok, err = kt:set({ key = "abc", value = 1000 })
+            if err then
+                ngx.say("failed to set: ", err)
+            end
+
+            local res, err = kt:increment({ key = "abc", num = 1 })
+            if err then
+                ngx.say("failed to increment: ", err)
+            else
+                ngx.say("increment ok: ", res.value)
+            end
+
+            local res, err = kt:increment({ key = "xyz", num = 1000 })
+            if err then
+                ngx.say("failed to increment: ", err)
+            else
+                ngx.say("increment ok: ", res.num)
+            end
+
+            local res, err = kt:increment({ key = "abc", num = 1, orig = "set" })
+            if err then
+                ngx.say("failed to increment: ", err)
+            else
+                ngx.say("increment ok: ", res.num)
+            end
+
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
+failed to increment: 450: DB: 8: logical inconsistency: logical inconsistency
+increment ok: 1000
+increment ok: 1001
+--- SKIP
