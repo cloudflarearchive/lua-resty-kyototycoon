@@ -31,8 +31,8 @@ __DATA__
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 

@@ -31,8 +31,8 @@ __DATA__
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -97,8 +97,8 @@ kyoto: tycoon
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -148,8 +148,8 @@ conf_kc_version
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -201,8 +201,8 @@ failed to get kyoto: 450: DB: 7: no record: no record
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -261,8 +261,8 @@ count: 1
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -331,8 +331,8 @@ failed to set: 450: DB: 6: record duplication: record duplication
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -401,8 +401,8 @@ get count: 1
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -487,8 +487,8 @@ kyoto: tycoon+tycoon
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -551,8 +551,8 @@ increment ok: 1001
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -617,8 +617,8 @@ kyoto: tycoon
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -673,8 +673,8 @@ kyoto: tycoon
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -739,8 +739,8 @@ abcdefg: 1
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
@@ -805,8 +805,8 @@ abcdefg: 1
     location /t {
         content_by_lua '
             local cjson = require "cjson"
-            local kyoto_tycoon = require "resty.kyoto_tycoon"
-            local kt = kyoto_tycoon:new()
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
 
             kt:set_timeout(1000) -- 1 sec
 
