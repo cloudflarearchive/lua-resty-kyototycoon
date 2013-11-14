@@ -88,7 +88,7 @@ function _M.decode(tsv_text)
     return res
 end
 
-function _M.encode(source)
+function _M.encode(source, encode_fun)
     if type(source) == "nil" then
         return ""
     end
@@ -103,6 +103,11 @@ function _M.encode(source)
 
     if #source > 0 then
         for i, row in ipairs(source) do
+            if encode_fun then
+                for j, rv in ipairs(row) do
+                    row[j] = encode_fun(rv)
+                end
+            end
             rows[rows_idx] = concat(row, "\t")
             rows_idx = rows_idx + 1
         end
@@ -112,9 +117,17 @@ function _M.encode(source)
             if type(v) == "table" then
                 val = _M.encode(v)
             else
-                val = v
+                if encode_fun then
+                    val = encode_fun(v)
+                else
+                    val = v
+                end
             end
-            rows[rows_idx] = k .. "\t" .. val
+            if encode_fun then
+                rows[rows_idx] = encode_fun(k) .. "\t" .. val
+            else
+                rows[rows_idx] = k .. "\t" .. val
+            end
             rows_idx = rows_idx + 1
         end
     end

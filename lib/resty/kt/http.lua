@@ -130,7 +130,7 @@ function _M.post(self, ...)
     local req = format("POST %s HTTP/1.0\r\n"
             .. "Host: %s:%d\r\n"
             .. "Content-Length: %d\r\n"
-            .. "Content-Type: text/tab-separated-values\r\n"
+            .. "Content-Type: text/tab-separated-values; colenc=B\r\n"
             .. "Connection: Keep-Alive\r\n\r\n"
             .. "%s", uri, self.host, self.port, #body, body)
 

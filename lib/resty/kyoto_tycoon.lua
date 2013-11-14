@@ -116,7 +116,7 @@ local function _do_req(http, cmd, args)
     -- get body
     local body, err
     if type(args) == "table" then
-        body, err = tsv.encode(args)
+        body, err = tsv.encode(args, ngx.encode_base64)
         if not body then
             return nil, err
         end
