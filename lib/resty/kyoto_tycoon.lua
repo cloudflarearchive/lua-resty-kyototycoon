@@ -55,6 +55,8 @@ local command_args = {
     get                 = { "key" },
     get_bulk            = {},
     match_prefix        = { "prefix" },
+    match_regex         = { "regex" },
+    match_similar       = { "origin" },
 ----------------------- NOT TESTED --------------------------
     increment           = { "key", "num" }, -- failed
     increment_double    = { "key", "num" },
@@ -65,8 +67,6 @@ local command_args = {
     set_bulk            = {},
     remove_bulk         = {},
     vacuum              = {},
-    match_regex         = { "regex" },
-    match_similar       = { "origin" },
     cur_jump            = { "CUR" },
     cur_jump_back       = { "CUR" },
     cur_step            = { "CUR" },
