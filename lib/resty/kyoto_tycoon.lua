@@ -131,6 +131,15 @@ local function _do_req(http, cmd, args)
     return http:post(uri, body)
 end
 
+local function _do_command_strip_result(self, cmd, args)
+    local res, err = _do_command(self, cmd, args)
+    if err then
+        return nil, err
+    end
+
+    return _strip_underscored_result(res)
+end
+
 -- kt:get("hello")
 local function _do_command(self, cmd, args)
     local res, err = _do_req(self.http, cmd, args)
@@ -154,6 +163,23 @@ local function _do_command(self, cmd, args)
     return body
 end
 
+local function _strip_underscored_result(res)
+    local num = res.num
+
+    if not num then
+        return nil, "bad response from Kyoto Tycoon server, \"num\" not found"
+    end
+
+    res.num = nil
+
+    local new_res = new_tab(0, num)
+    for k, v in pairs(res) do
+        new_res[sub(k, 2)] = v
+    end
+
+    return new_res
+end
+
 function _M.new(self)
     local http, err = httpmod:new()
     if not http then
@@ -173,7 +199,15 @@ function _M.connect(self, ...)
 end
 
 for i, cmd in pairs(commands) do
-    _M[cmd] = function(self, args) return _do_command(self, cmd, args) end
+    if sub(cmd, 1, 6) == "match_" then
+        _M[cmd] = function(self, args)
+                        return _do_command_strip_result(self, cmd, args)
+                  end
+    else
+        _M[cmd] = function(self, args)
+                        return _do_command(self, cmd, args)
+                  end
+    end
 end
 
 function _M.set_timeout(self, ...)
@@ -203,20 +237,7 @@ function _M.get_bulk(self, args)
         return nil, err
     end
 
-    local num = res.num
-
-    if not num then
-        return nil, "bad response from Kyoto Tycoon server, \"num\" not found"
-    end
-
-    res.num = nil
-
-    local new_res = new_tab(0, num)
-    for k, v in pairs(res) do
-        new_res[sub(k, 2)] = v
-    end
-
-    return new_res
+    return _strip_underscored_result(res)
 end
 
 return _M
