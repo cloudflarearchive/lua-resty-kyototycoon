@@ -9,6 +9,7 @@ local debug         = ngx.config.debug
 local log           = ngx.log
 local format        = string.format
 local sub           = string.sub
+local match         = string.match
 
 local DEBUG         = ngx.DEBUG
 local ERR           = ngx.ERR
@@ -148,6 +149,19 @@ local function _strip_underscored_result(res)
     return new_res
 end
 
+local function _get_encoding(content_type)
+    if (sub(content_type, 1, 25) ~= "text/tab-separated-values") then
+        return false
+    end
+
+    local enc = match(content_type, "colenc%=(%w)")
+    return true, enc
+end
+
+local function _decode_quoted_printable(str)
+    return sub(str, 2, -2)
+end
+
 local function _do_command(self, cmd, args)
     local res, err = _do_req(self.http, cmd, args)
     if not res then
@@ -158,11 +172,21 @@ local function _do_command(self, cmd, args)
         return ""
     end
 
-    if (res.header.content_type ~= "text/tab-separated-values") then
+    local is_tsv, encoding = _get_encoding(res.header.content_type)
+    if not is_tsv then
         return res.body
     end
+    local decode_fun
 
-    local body = tsv.decode_kv(res.body)
+    if encoding == "B" then
+        decode_fun = ngx.decode_base64
+    elseif encoding == "Q" then
+        decode_fun = _decode_quoted_printable
+    elseif encoding == "U" then
+        decode_fun = ngx.unescape_uri
+    end
+
+    local body = tsv.decode_kv(res.body, decode_fun)
     if (res.header.status ~= 200) then
         return nil, format("%d: %s", res.header.status, body.ERROR)
     end

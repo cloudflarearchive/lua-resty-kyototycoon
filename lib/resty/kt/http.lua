@@ -90,7 +90,7 @@ function _M.read_reply(self)
     end
     header_table.content_length = tonumber(content_length)
 
-    local content_type = match(header, "Content%-Type: ([%w_/-]+)")
+    local content_type = match(header, "Content%-Type: (.*)")
     if content_type then
         header_table.content_type = content_type
     end

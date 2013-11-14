@@ -22,14 +22,18 @@ local _M = new_tab(0, 10)
 _M._VERSION = '0.01'
 
 
-function _M.decode_kv(tsv_text)
+function _M.decode_kv(tsv_text, decode_fun)
     local r, err = _M.decode(tsv_text)
     if not r then
         return nil, err
     end
     local res = {}
     for i, v in ipairs(r) do
-        res[v[1]] = v[2]
+        if decode_fun then
+            res[decode_fun(v[1])] = decode_fun(v[2])
+        else
+            res[v[1]] = v[2]
+        end
     end
 
     return res
