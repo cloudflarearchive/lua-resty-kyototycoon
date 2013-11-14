@@ -8,6 +8,7 @@ local concat        = table.concat
 local debug         = ngx.config.debug
 local log           = ngx.log
 local format        = string.format
+local sub           = string.sub
 
 local DEBUG         = ngx.DEBUG
 local ERR           = ngx.ERR
@@ -30,7 +31,7 @@ local commands = {
     "tune_replication",         "status",       "clear",        "synchronize",
     "set",      "add",          "replace",      "append",       "increment",
     "increment_double",         "cas",          "remove",       "get",
-    "check",    "seize",        "set_bulk",     "remove_bulk",  "get_bulk",
+    "check",    "seize",        "set_bulk",     "remove_bulk",  --"get_bulk",
     "vacuum",   "match_prefix",                 "match_regex",  "match_similar",
     "cur_jump", "cur_jump_back",                "cur_step",     "cur_step_back",
     "cur_set_value",            "cur_remove",   "cur_get_key",  "cur_get_value",
@@ -181,6 +182,41 @@ end
 
 function _M.close(self)
     self.http:close()
+end
+
+function _M.get_bulk(self, args)
+    local db = args.db
+    local atomic = args.atomic
+    local keys = args.keys
+
+    if atomic then
+        atomic = ""
+    end
+
+    local new_args = { db = db, atomic = atomic }
+    for k, v in pairs(keys) do
+        new_args["_" .. v] = ""
+    end
+
+    local res, err = _do_command(self, "get_bulk", new_args)
+    if err then
+        return nil, err
+    end
+
+    local num = res.num
+
+    if not num then
+        return nil, "bad response from Kyoto Tycoon server, \"num\" not found"
+    end
+
+    res.num = nil
+
+    local new_res = new_tab(0, num)
+    for k, v in pairs(res) do
+        new_res[sub(k, 2)] = v
+    end
+
+    return new_res
 end
 
 return _M

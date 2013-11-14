@@ -542,3 +542,69 @@ failed to increment: 450: DB: 8: logical inconsistency: logical inconsistency
 increment ok: 1000
 increment ok: 1001
 --- SKIP
+
+
+
+=== TEST 9: sanity
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyoto_tycoon = require "resty.kyoto_tycoon"
+            local kt = kyoto_tycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.say("failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.say("failed to call kt:clear(): ", err)
+                return
+            end
+
+            ok, err = kt:set({
+                key = "kyoto",
+                value = "tycoon",
+            })
+            if not ok then
+                ngx.say("failed to set: ", err)
+                return
+            end
+
+            ok, err = kt:set({
+                key = "tokyo",
+                value = "cabinet",
+            })
+            if not ok then
+                ngx.say("failed to set: ", err)
+                return
+            end
+
+            ngx.say("set kyoto, tokyo ok")
+
+            res, err = kt:get_bulk({ atomic = true, keys = { "kyoto", "tokyo" } })
+            if err then
+                ngx.say("failed to get kyoto: ", err)
+                return
+            end
+
+            for k, v in pairs(res) do
+                ngx.say(k, ": ", v)
+            end
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
+set kyoto, tokyo ok
+tokyo: cabinet
+kyoto: tycoon
