@@ -52,6 +52,7 @@ local command_args = {
     replace             = { "key", "value" },
     append              = { "key", "value" },
     get                 = { "key" },
+    get_bulk            = {},
 ----------------------- NOT TESTED --------------------------
     increment           = { "key", "num" }, -- failed
     increment_double    = { "key", "num" },
@@ -61,7 +62,6 @@ local command_args = {
     seize               = { "key" },
     set_bulk            = {},
     remove_bulk         = {},
-    get_bulk            = {},
     vacuum              = {},
     match_prefix        = { "prefix" },
     match_regex         = { "regex" },
