@@ -53,6 +53,7 @@ local command_args = {
     append              = { "key", "value" },
     get                 = { "key" },
     get_bulk            = {},
+    match_prefix        = { "prefix" },
 ----------------------- NOT TESTED --------------------------
     increment           = { "key", "num" }, -- failed
     increment_double    = { "key", "num" },
@@ -63,7 +64,6 @@ local command_args = {
     set_bulk            = {},
     remove_bulk         = {},
     vacuum              = {},
-    match_prefix        = { "prefix" },
     match_regex         = { "regex" },
     match_similar       = { "origin" },
     cur_jump            = { "CUR" },
@@ -131,16 +131,23 @@ local function _do_req(http, cmd, args)
     return http:post(uri, body)
 end
 
-local function _do_command_strip_result(self, cmd, args)
-    local res, err = _do_command(self, cmd, args)
-    if err then
-        return nil, err
+local function _strip_underscored_result(res)
+    local num = res.num
+
+    if not num then
+        return nil, "bad response from Kyoto Tycoon server, \"num\" not found"
     end
 
-    return _strip_underscored_result(res)
+    res.num = nil
+
+    local new_res = new_tab(0, num)
+    for k, v in pairs(res) do
+        new_res[sub(k, 2)] = v
+    end
+
+    return new_res
 end
 
--- kt:get("hello")
 local function _do_command(self, cmd, args)
     local res, err = _do_req(self.http, cmd, args)
     if not res then
@@ -163,21 +170,13 @@ local function _do_command(self, cmd, args)
     return body
 end
 
-local function _strip_underscored_result(res)
-    local num = res.num
-
-    if not num then
-        return nil, "bad response from Kyoto Tycoon server, \"num\" not found"
+local function _do_command_strip_result(self, cmd, args)
+    local res, err = _do_command(self, cmd, args)
+    if err then
+        return nil, err
     end
 
-    res.num = nil
-
-    local new_res = new_tab(0, num)
-    for k, v in pairs(res) do
-        new_res[sub(k, 2)] = v
-    end
-
-    return new_res
+    return _strip_underscored_result(res)
 end
 
 function _M.new(self)
