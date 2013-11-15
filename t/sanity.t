@@ -545,7 +545,7 @@ increment ok: 1001
 
 
 
-=== TEST 9: sanity
+=== TEST 9: get_bulk
 --- http_config eval: $::HttpConfig
 --- config
     location /t {
@@ -866,3 +866,60 @@ GET /t
 set ok
 abcd: 0
 abcdefg: 1
+
+
+
+=== TEST 14: set_bulk
+--- http_config eval: $::HttpConfig
+--- config
+    location /t {
+        content_by_lua '
+            local cjson = require "cjson"
+            local kyototycoon = require "resty.kyototycoon"
+            local kt = kyototycoon:new()
+
+            kt:set_timeout(1000) -- 1 sec
+
+            local ok, err = kt:connect("127.0.0.1", $TEST_NGINX_KT_PORT)
+            if not ok then
+                ngx.say("failed to connect to kt: ", err)
+                return
+            end
+
+            local res, err = kt:clear()
+            if err then
+                ngx.say("failed to call kt:clear(): ", err)
+                return
+            end
+
+            ok, err = kt:set_bulk({
+                kyoto = "tycoon",
+                tokyo = "cabinet",
+            }, { atom = true })
+            if not ok then
+                ngx.say("failed to set: ", err)
+                return
+            end
+
+            ngx.say("set kyoto, tokyo ok")
+
+            res, err = kt:get_bulk({ "kyoto", "tokyo" }, { atomic = true })
+            if err then
+                ngx.say("failed to get kyoto: ", err)
+                return
+            end
+
+            for k, v in pairs(res) do
+                ngx.say(k, ": ", v)
+            end
+            kt:close()
+        ';
+    }
+--- request
+GET /t
+--- no_error_log
+[error]
+--- response_body
+set kyoto, tokyo ok
+tokyo: cabinet
+kyoto: tycoon

@@ -32,7 +32,7 @@ local commands = {
     "tune_replication",         "status",       "clear",        "synchronize",
     "set",      "add",          "replace",      "append",       "increment",
     "increment_double",         "cas",          "remove",       "get",
-    "check",    "seize",        "set_bulk",     "remove_bulk",  --"get_bulk",
+    "check",    "seize",      --"set_bulk",     "remove_bulk",  "get_bulk",
     "vacuum",   "match_prefix",                 "match_regex",  "match_similar",
     "cur_jump", "cur_jump_back",                "cur_step",     "cur_step_back",
     "cur_set_value",            "cur_remove",   "cur_get_key",  "cur_get_value",
@@ -204,16 +204,19 @@ local function _do_command_strip_result(self, cmd, args)
 end
 
 local function _bulk_cmd(self, cmd, records, args)
-    local db = args.db
-    local atomic = args.atomic
+    local db, atomic
+
+    if args then
+        db = args.db
+        atomic = args.atomic
+    end
 
     if atomic then
         atomic = ""
     end
 
     local new_args = { db = db, atomic = atomic }
-
-    if #records then
+    if #records > 0 then
         -- key tables
         for i, v in ipairs(records) do
             new_args["_" .. v] = ""
@@ -276,7 +279,7 @@ function _M.close(self)
 end
 
 function _M.set_bulk(self, records, args)
-    return _bulk_cmd(self, "get_bulk", records, args)
+    return _bulk_cmd(self, "set_bulk", records, args)
 end
 
 function _M.get_bulk(self, keys, args)

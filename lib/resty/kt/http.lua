@@ -101,7 +101,7 @@ function _M.read_reply(self)
         return nil, "receive http body failed: " .. err
     end
 
-    --print("http response:\n" .. header .. "\r\n\r\n" .. body)
+    print("http response:\n" .. header .. "\r\n\r\n" .. body)
     return { header = header_table, raw_header = header, body = body }
 end
 
@@ -134,7 +134,7 @@ function _M.post(self, ...)
             .. "Connection: Keep-Alive\r\n\r\n"
             .. "%s", uri, self.host, self.port, #body, body)
 
-    --print("http request:\n" .. req)
+    print("http request:\n" .. req)
     local bytes, err = sock:send(req)
     if not bytes then
         return nil, "sock:send failed: " .. err
