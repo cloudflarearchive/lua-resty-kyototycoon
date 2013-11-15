@@ -588,7 +588,7 @@ increment ok: 1001
 
             ngx.say("set kyoto, tokyo ok")
 
-            res, err = kt:get_bulk({ atomic = true, keys = { "kyoto", "tokyo" } })
+            res, err = kt:get_bulk({ "kyoto", "tokyo" }, { atomic = true })
             if err then
                 ngx.say("failed to get kyoto: ", err)
                 return
@@ -645,7 +645,7 @@ kyoto: tycoon
 
             ngx.say("set kyoto ok")
 
-            res, err = kt:get_bulk({ atomic = true, keys = { "kyoto", "tokyo" } })
+            res, err = kt:get_bulk({ "kyoto", "tokyo" }, { atomic = true })
             if err then
                 ngx.say("failed to get kyoto: ", err)
                 return

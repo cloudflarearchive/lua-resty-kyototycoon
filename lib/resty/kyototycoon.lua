@@ -203,6 +203,37 @@ local function _do_command_strip_result(self, cmd, args)
     return _strip_underscored_result(res)
 end
 
+local function _bulk_cmd(self, cmd, records, args)
+    local db = args.db
+    local atomic = args.atomic
+
+    if atomic then
+        atomic = ""
+    end
+
+    local new_args = { db = db, atomic = atomic }
+
+    if #records then
+        -- key tables
+        for i, v in ipairs(records) do
+            new_args["_" .. v] = ""
+        end
+    else
+        -- key/value pairs
+        for k, v in pairs(records) do
+            new_args["_" .. k] = v
+        end
+    end
+
+    local res, err = _do_command(self, cmd, new_args)
+    if err then
+        return nil, err
+    end
+
+    return _strip_underscored_result(res)
+end
+
+
 function _M.new(self)
     local http, err = httpmod:new()
     if not http then
@@ -211,7 +242,6 @@ function _M.new(self)
 
     return setmetatable({ http = http, tsv = tsv }, mt)
 end
-
 
 function _M.connect(self, ...)
     local args = {...}
@@ -233,6 +263,10 @@ for i, cmd in pairs(commands) do
     end
 end
 
+function _M.set_keepalive(self, ...)
+    self.http:set_keepalive(self, ...)
+end
+
 function _M.set_timeout(self, ...)
     self.http:set_timeout(...)
 end
@@ -241,26 +275,16 @@ function _M.close(self)
     self.http:close()
 end
 
-function _M.get_bulk(self, args)
-    local db = args.db
-    local atomic = args.atomic
-    local keys = args.keys
+function _M.set_bulk(self, records, args)
+    return _bulk_cmd(self, "get_bulk", records, args)
+end
 
-    if atomic then
-        atomic = ""
-    end
+function _M.get_bulk(self, keys, args)
+    return _bulk_cmd(self, "get_bulk", keys, args)
+end
 
-    local new_args = { db = db, atomic = atomic }
-    for k, v in pairs(keys) do
-        new_args["_" .. v] = ""
-    end
-
-    local res, err = _do_command(self, "get_bulk", new_args)
-    if err then
-        return nil, err
-    end
-
-    return _strip_underscored_result(res)
+function _M.remove_bulk(self, keys, args)
+    return _bulk_cmd(self, "remove_bulk", keys, args)
 end
 
 return _M
