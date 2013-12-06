@@ -18,6 +18,7 @@ TODO
 * Documents for response format, error message
 * Test new commands support
 * Encoding(colenc) support
+* Test match_similar with utf8 string
 
 [Back to TOC](#table-of-contents)
 
