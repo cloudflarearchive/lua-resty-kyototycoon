@@ -267,7 +267,7 @@ for i, cmd in pairs(commands) do
 end
 
 function _M.set_keepalive(self, ...)
-    self.http:set_keepalive(self, ...)
+    self.http:set_keepalive(...)
 end
 
 function _M.set_timeout(self, ...)
